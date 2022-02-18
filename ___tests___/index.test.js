@@ -454,9 +454,9 @@ describe('mockingoose', () => {
         .toReturn({ name: 'another name' }, 'save');
 
       const mocksString =
-        '{"User":{"find":{"name":"name"},"findOne":{"name":"a name too"},"save":{"name":"another name"}}}';
+        '{"User":{"find":{"name":"name"},"findOne":{"name":"a name too"},"save":{"name":"another name"},"$save":{"name":"another name"}}}';
       const mockString =
-        '{"find":{"name":"name"},"findOne":{"name":"a name too"},"save":{"name":"another name"}}';
+        '{"find":{"name":"name"},"findOne":{"name":"a name too"},"save":{"name":"another name"},"$save":{"name":"another name"}}';
 
       const mocksObject = {
         User: {
@@ -467,6 +467,9 @@ describe('mockingoose', () => {
             name: 'a name too',
           },
           save: {
+            name: 'another name',
+          },
+          $save: {
             name: 'another name',
           },
         },
@@ -598,7 +601,7 @@ describe('mockingoose', () => {
     });
 
     it('returns should correctly mock insertMany', async () => {
-      const docs = [{ email: '1' }, { email: '2' }, { email: 3}];
+      const docs = [{ email: '1' }, { email: '2' }, { email: 3 }];
 
       mockingoose(User).toReturn(docs, 'insertMany');
 
@@ -608,7 +611,7 @@ describe('mockingoose', () => {
     });
 
     it('returns should correctly mock insertMany with lean option', async () => {
-      const docs = [{ email: '1' }, { email: '2' }, { email: 3}];
+      const docs = [{ email: '1' }, { email: '2' }, { email: 3 }];
 
       mockingoose(User).toReturn(docs, 'insertMany');
 
@@ -618,7 +621,7 @@ describe('mockingoose', () => {
     });
 
     it('returns should correctly mock insertMany with rawResult option', async () => {
-      const docs = [{ email: '1' }, { email: '2' }, { email: 3}];
+      const docs = [{ email: '1' }, { email: '2' }, { email: 3 }];
 
       mockingoose(User).toReturn(docs, 'insertMany');
 

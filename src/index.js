@@ -39,9 +39,10 @@ const ops = [
   'deleteMany',
   'save',
   'aggregate',
+  '$save',
 ];
 
-const mockedReturn = async function(cb) {
+const mockedReturn = async function (cb) {
   const {
     op,
     model: { modelName },
@@ -62,7 +63,7 @@ const mockedReturn = async function(cb) {
     mock = await mock(this);
   }
 
-  if (!mock && op === 'save') {
+  if (!mock && (op === 'save' || op === '$save')) {
     mock = this;
   }
 
@@ -86,12 +87,12 @@ const mockedReturn = async function(cb) {
       ? mock.map(item => new Model(item))
       : new Model(mock);
 
-    if(op === 'insertMany') {
-      if(!Array.isArray(mock)) mock = [mock];
+    if (op === 'insertMany') {
+      if (!Array.isArray(mock)) mock = [mock];
 
-      for(const doc of mock) {
+      for (const doc of mock) {
         const e = doc.validateSync();
-        if(e) throw e;
+        if (e) throw e;
       }
     }
 
@@ -116,7 +117,7 @@ const mockedReturn = async function(cb) {
 ops.forEach(op => {
   mongoose.Query.prototype[op] = jest
     .fn()
-    .mockImplementation(function(criteria, doc, options, callback) {
+    .mockImplementation(function (criteria, doc, options, callback) {
       if (
         [
           'find',
@@ -186,13 +187,13 @@ ops.forEach(op => {
     });
 });
 
-mongoose.Query.prototype.exec = jest.fn().mockImplementation(function(cb) {
+mongoose.Query.prototype.exec = jest.fn().mockImplementation(function (cb) {
   return mockedReturn.call(this, cb);
 });
 
 mongoose.Aggregate.prototype.exec = jest
   .fn()
-  .mockImplementation(async function(cb) {
+  .mockImplementation(async function (cb) {
     const {
       _model: { modelName },
     } = this;
@@ -224,7 +225,7 @@ mongoose.Aggregate.prototype.exec = jest
 
 mongoose.Model.insertMany = jest
   .fn()
-  .mockImplementation(function(arr, options, cb) {
+  .mockImplementation(function (arr, options, cb) {
     const op = 'insertMany';
     const { modelName } = this;
 
@@ -235,16 +236,16 @@ mongoose.Model.insertMany = jest
       this._mongooseOptions = options;
     }
 
-    Object.assign(this, { op, model: { modelName }})
+    Object.assign(this, { op, model: { modelName } })
     return mockedReturn.call(this, cb);
   })
 
-const instance = ['remove', 'save'];
+const instance = ['remove', 'save', '$save'];
 
 instance.forEach(methodName => {
   mongoose.Model.prototype[methodName] = jest
     .fn()
-    .mockImplementation(function(options, cb) {
+    .mockImplementation(function (options, cb) {
       const op = methodName;
       const { modelName } = this.constructor;
 
@@ -309,16 +310,26 @@ const proxyTarget = Object.assign(() => void 0, {
 const getMockController = prop => {
   return {
     toReturn(o, op = 'find') {
-      proxyTarget.__mocks.hasOwnProperty(prop)
-        ? (proxyTarget.__mocks[prop][op] = o)
-        : (proxyTarget.__mocks[prop] = { [op]: o });
+      if (!proxyTarget.__mocks.hasOwnProperty(prop)) proxyTarget.__mocks[prop] = {};
+
+      if (op === 'save' || op === '$save') {
+        proxyTarget.__mocks[prop]['save'] = o
+        proxyTarget.__mocks[prop]['$save'] = o
+      } else {
+        proxyTarget.__mocks[prop][op] = o
+      }
 
       return this;
     },
 
     reset(op) {
       if (op) {
-        delete proxyTarget.__mocks[prop][op];
+        if (op === 'save' || op === '$save') {
+          delete proxyTarget.__mocks[prop]['save'];
+          delete proxyTarget.__mocks[prop]['$save'];
+        } else {
+          delete proxyTarget.__mocks[prop][op];
+        }
       } else {
         delete proxyTarget.__mocks[prop];
       }

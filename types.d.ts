@@ -16,7 +16,8 @@ declare const ops: [
   'deleteOne',
   'deleteMany',
   'save',
-  'aggregate'
+  'aggregate',
+  '$save',
 ];
 declare type Ops = typeof ops[number];
 declare type ReturnFunction = (param: mongoose.Query<any> | mongoose.Aggregate<any>) => {};

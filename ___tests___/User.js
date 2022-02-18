@@ -10,7 +10,11 @@ const schema = new Schema({
   saveCount: { type: Number, default: 0 },
 });
 
-schema.pre('save', function() {
+schema.pre('save', function () {
+  this.saveCount++;
+});
+
+schema.pre('$save', function () {
   this.saveCount++;
 });
 
