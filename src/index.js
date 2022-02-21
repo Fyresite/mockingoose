@@ -369,4 +369,3 @@ const mockModel = (model) => {
 };
 
 module.exports = mockingoose;
-exports.mockingoose = mockingoose;
